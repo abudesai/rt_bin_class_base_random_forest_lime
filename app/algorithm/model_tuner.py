@@ -12,6 +12,7 @@ import warnings
 import sys
 from sklearn.model_selection import train_test_split
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2'}
 warnings.filterwarnings('ignore') 
 
 import algorithm.utils as utils 
@@ -53,7 +54,7 @@ def get_default_hps(hpt_specs):
 def load_best_hyperspace(results_path):
     results = [ f for f in list(sorted(os.listdir(results_path))) if 'json' in f ]
     if len(results) == 0: return None
-    best_result_name = results[0]
+    best_result_name = results[-1]   # get maximum value
     best_result_file_path = os.path.join(results_path, best_result_name)
     return utils.get_json_file(best_result_file_path, "best_hpt_results")
 
@@ -102,32 +103,32 @@ def tune_hyperparameters(data, data_schema, num_trials, hyper_param_path, hpt_re
     
     # get the hpt space (grid) and default hps
     hpt_space = get_hpt_space(hpt_specs)  
-    default_hps = get_default_hps(hpt_specs)               
+    default_hps = get_default_hps(hpt_specs)  
+            
+    # set random seeds
+    utils.set_seeds()   
+    # perform train/valid split on the training data 
+    train_data, valid_data = train_test_split(data, test_size=model_cfg['valid_split'])    
+    train_data, valid_data, _  = model_trainer.preprocess_data(train_data, valid_data, data_schema)   
+    train_X, train_y = train_data['X'].astype(np.float), train_data['y'].astype(np.float)
+    valid_X, valid_y = valid_data['X'].astype(np.float), valid_data['y'].astype(np.float) 
+    
+    # balance the target classes    
+    train_X, train_y = model_trainer.get_resampled_data(train_X, train_y)
+    valid_X, valid_y = model_trainer.get_resampled_data(valid_X, valid_y)
     
     # Scikit-optimize objective function
     @use_named_args(hpt_space)
     def objective(**hyperparameters):
-                
-        # set random seeds
-        utils.set_seeds()   
-        # perform train/valid split on the training data 
-        train_data, valid_data = train_test_split(data, test_size=model_cfg['valid_split'])    
-        train_data, valid_data, _  = model_trainer.preprocess_data(train_data, valid_data, data_schema)   
-        train_X, train_y = train_data['X'].values.astype(np.float), train_data['y'].values.astype(np.float)
-        valid_X, valid_y = valid_data['X'].values.astype(np.float), valid_data['y'].values.astype(np.float) 
         
-        # balance the target classes         
-        train_X, train_y = model_trainer.get_resampled_data(train_X, train_y)
-        valid_X, valid_y = model_trainer.get_resampled_data(valid_X, valid_y)
-    
         """Build a model from this hyper parameter permutation and evaluate its performance"""
         # train model
-        model, _ = model_trainer.train_model(train_X, train_y, valid_X, valid_y, hyperparameters) 
+        model = model_trainer.train_model(train_X, train_y, hyperparameters) 
         
         # evaluate the model
-        score = model.evaluate(valid_X, valid_y)
+        score = model.evaluate(valid_X, valid_y)  # returns accuracy
         # Our optimizing metric is the model loss fn
-        opt_metric = np.round(score[0], 5)   # returns binary_cross_entropy
+        opt_metric = np.round(score, 5)   # returns binary_cross_entropy
         if np.isnan(opt_metric) or math.isinf(opt_metric): opt_metric = 1.0e5     # sometimes loss becomes inf, so use a large value
         # create a unique model name for the trial - we add loss into file name 
         # so we can later sort by file names, and get the best score file without reading each file   
@@ -144,7 +145,9 @@ def tune_hyperparameters(data, data_schema, num_trials, hyper_param_path, hpt_re
         utils.save_json(os.path.join(hpt_results_path, model_name + ".json"), result)
         # Save the best model parameters found so far in case the HPO job is killed
         save_best_parameters(hpt_results_path, hyper_param_path)
-        return opt_metric
+        # returning negative, because we are returning accuracy which we want to maximize
+        # and gp_minimize minimizes the metric
+        return -opt_metric
     
     
     n_initial_points = int(max(1, min(num_trials/3, 5)))

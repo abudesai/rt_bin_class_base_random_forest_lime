@@ -25,7 +25,7 @@ training_path = os.path.join(data_path, channel_name, "binaryClassificationBaseM
 
 
 
-def tune(num_trials=10):    
+def tune(num_trials=30):    
     try:        
         print(f'Running the hyperparameter tuning with # of trials = {num_trials}')  
         # Read data
@@ -51,7 +51,7 @@ def tune(num_trials=10):
     
 if __name__ == '__main__': 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-n", "--num_trials", type=int, default=20, help="the number of trials to run for HPO")
+    parser.add_argument("-n", "--num_trials", type=int, default=30, help="the number of trials to run for HPO")
     args = parser.parse_args()
     
     tune(num_trials=args.num_trials)

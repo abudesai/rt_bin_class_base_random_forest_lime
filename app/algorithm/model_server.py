@@ -5,7 +5,7 @@ from interpret.blackbox import LimeTabular
 
 import algorithm.utils as utils
 import algorithm.preprocessing.pipeline as pipeline
-import algorithm.model.random_forest as random_forest
+import algorithm.model.classifier as classifier
 
 
 # get model configuration parameters 
@@ -20,7 +20,7 @@ class ModelServer:
         self.data_schema = data_schema
         self.id_field_name = self.data_schema["inputDatasets"]["binaryClassificationBaseMainInput"]["idField"]  
         self.has_local_explanations = True
-        self.MAX_LOCAL_EXPLANATIONS = 8
+        self.MAX_LOCAL_EXPLANATIONS = 3
     
     
     def _get_preprocessor(self): 
@@ -36,7 +36,7 @@ class ModelServer:
     def _get_model(self): 
         if self.model is None: 
             try: 
-                self.model = random_forest.load_model(self.model_path)
+                self.model = classifier.load_model(self.model_path)
                 return self.model
             except: 
                 print(f'Could not load model from {self.model_path}. Did you train the model first?')
@@ -116,7 +116,7 @@ class ModelServer:
                    random_state=1)
         
         # Get local explanations
-        lime_local = lime.explain_local(X=pred_X,  y=None, name=f"{random_forest.MODEL_NAME} local explanations")
+        lime_local = lime.explain_local(X=pred_X,  y=None, name=f"{classifier.MODEL_NAME} local explanations")
         
         # create the dataframe of local explanations to return
         ids =  proc_data['ids']

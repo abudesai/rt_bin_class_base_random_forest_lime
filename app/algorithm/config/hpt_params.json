@@ -2,7 +2,7 @@
   {
     "name": "n_estimators",
     "short_desc": "The number of trees in the forest.",
-    "default": 100,
+    "default": 250,
     "type": "int",
     "search_type": "uniform",
     "range_low": 100,
@@ -27,9 +27,7 @@
     "type": "int",
     "search_type": "uniform",
     "range_low": 1,
-    "range_high": 20,
+    "range_high": 3,
     "run_HPO": true
   }
-
-
 ]

@@ -39,13 +39,11 @@ def train():
         # read data config
         data_schema = utils.get_data_schema(data_schema_path)
         # get trained preprocessor, model, training history 
-        preprocessor, model, history = model_trainer.get_trained_model(train_data, data_schema, hyper_parameters)        
+        preprocessor, model = model_trainer.get_trained_model(train_data, data_schema, hyper_parameters)        
         # Save the processing pipeline   
         pipeline.save_preprocessor(preprocessor, model_path)
         # Save the model 
-        classifier.save_model(model, model_path)
-        # Save the history 
-        classifier.save_training_history(history, model_path)           
+        classifier.save_model(model, model_path)     
         print('Done training.')
     except Exception as e:
         print("error!")
