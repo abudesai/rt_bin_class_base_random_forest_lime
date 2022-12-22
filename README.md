@@ -28,4 +28,4 @@ Hyperparameter Tuning (HPT) is conducted by finding the optimal number of decisi
 
 During the model development process, the algorithm was trained and evaluated on a variety of datasets such as email spam detection, customer churn, credit card fraud detection, cancer diagnosis, and titanic passanger survivor prediction.
 
-The main programming language is Python. Other tools include Scikit-Learn for main algorithm, interpret for model explainability, feature-engine for preprocessing, Scikit-Optimize for HPT, Flask + Nginx + gunicorn for web service. The web service provides three endpoints- /ping for health check, /infer for predictions in real time and /explain to generate local explanations.
+The main programming language is Python. Other tools include Scikit-Learn for main algorithm, interpret for model explainability, feature-engine for preprocessing, Scikit-Optimize for HPT, Flask + Nginx + gunicorn for web service. The web service provides three endpoints- /ping for health check, /infer for predictions in real time and /explain to generate local explanations. Note that multiple samples are required when deriving explanations.

@@ -48,7 +48,7 @@ class ModelServer:
         # Grab input features for prediction
         pred_X = proc_data["X"].astype(np.float)
         # make predictions
-        preds = model.predict(pred_X)
+        preds = model.predict_proba(pred_X)
         return preds
 
     def predict_proba(self, data):
@@ -59,8 +59,8 @@ class ModelServer:
 
         # return te prediction df with the id and class probability fields
         preds_df = data[[self.id_field_name]].copy()
-        preds_df[class_names[0]] = 1 - preds
-        preds_df[class_names[1]] = preds
+        preds_df[class_names[0]] = preds[:, 0]
+        preds_df[class_names[1]] = preds[:, 1]
         # print(preds_df)
 
         return preds_df
@@ -86,15 +86,17 @@ class ModelServer:
         return predictions_response
 
     def predict(self, data):
-        preds = self._get_predictions(data)
+        preds = self.predict_proba(data)
 
-        # inverse transform the prediction probabilities to class labels
-        pred_classes = pipeline.get_inverse_transform_on_preds(
-            self.preprocessor, model_cfg, preds
-        )
-        # return te prediction df with the id and prediction fields
+        pred_class_names = [str(c) for c in preds.columns[1:]]
+        preds.columns = [str(c) for c in list(preds.columns)]
+        preds["__pred_class"] = pd.DataFrame(
+            preds[pred_class_names], columns=pred_class_names
+        ).idxmax(axis=1)
+
+        # return the prediction df with the id and prediction fields
         preds_df = data[[self.id_field_name]].copy()
-        preds_df["prediction"] = pred_classes
+        preds_df["prediction"] = preds["__pred_class"]
 
         return preds_df
 
