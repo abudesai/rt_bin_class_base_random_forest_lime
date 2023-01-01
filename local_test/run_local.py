@@ -240,11 +240,13 @@ def save_test_outputs(results, run_hpt, dataset_name):
     df.to_csv(file_path_and_name, index=False)
 
 
+
 def save_local_explanations(local_explanations, dataset_name):
     if local_explanations is not None:
-        fname = f"{model_name}_{dataset_name}_local_explanations.csv"
+        fname = f"{model_name}_{dataset_name}_local_explanations.json"
         file_path_and_name = os.path.join(test_results_path, fname)
-        local_explanations.to_csv(file_path_and_name, index=False)
+        with open(file_path_and_name, "w") as f:
+            f.writelines(local_explanations)
 
 
 def get_file_path_and_name(run_hpt, dataset_name):
