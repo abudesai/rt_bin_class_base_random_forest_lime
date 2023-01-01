@@ -20,7 +20,8 @@ class Classifier():
         self.n_estimators = int(n_estimators)
         self.min_samples_split = int(min_samples_split)
         self.min_samples_leaf = int(min_samples_leaf)
-        self.model = self.build_model()     
+        self.model = self.build_model()   
+        self.train_X = None 
         
         
     def build_model(self): 
@@ -32,7 +33,8 @@ class Classifier():
         return model
     
     
-    def fit(self, train_X, train_y):        
+    def fit(self, train_X, train_y):   
+        self.train_X = train_X    
         self.model.fit(train_X, train_y)            
         
     
@@ -64,7 +66,6 @@ class Classifier():
     @classmethod
     def load(cls, model_path):         
         model = joblib.load(os.path.join(model_path, model_fname))
-        # print("where the load function is getting the model from: "+ os.path.join(model_path, model_fname))        
         return model
 
 
@@ -73,11 +74,7 @@ def save_model(model, model_path):
     
 
 def load_model(model_path): 
-    try: 
-        model = Classifier.load(model_path)        
-    except: 
-        raise Exception(f'''Error loading the trained {MODEL_NAME} model. 
-            Do you have the right trained model in path: {model_path}?''')
+    model = Classifier.load(model_path)      
     return model
 
 
