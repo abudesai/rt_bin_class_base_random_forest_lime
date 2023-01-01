@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np, pandas as pd
 import os, sys
 import json
-from interpret.blackbox import LimeTabular
 from lime import lime_tabular
 
 import algorithm.utils as utils
